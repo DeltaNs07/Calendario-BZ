@@ -4,7 +4,7 @@ import { useClanData } from '../context/ClanDataContext';
 import { GalleryCategory, GalleryItem } from '../types/clan';
 import { playTapSound } from '../utils/soundAndEffects';
 import { SmartImage } from './SmartImage';
-import { EditableText } from './EditableText';
+import { EditableText, EditableValue } from './EditableText';
 
 interface GallerySectionProps {
   onAddImage: () => void;
@@ -21,12 +21,12 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ onAddImage }) =>
     (item) => filter === 'all' || item.category === filter
   );
 
-  const categories: { id: 'all' | GalleryCategory; label: string }[] = [
-    { id: 'all', label: g.filterAll },
-    { id: 'victorias', label: g.catVictorias },
-    { id: 'torneos', label: g.catTorneos },
-    { id: 'jugadas', label: g.catJugadas },
-    { id: 'comunidad', label: g.catComunidad },
+  const categories: { id: 'all' | GalleryCategory; field: keyof typeof g; label: string }[] = [
+    { id: 'all', field: 'filterAll', label: g.filterAll },
+    { id: 'victorias', field: 'catVictorias', label: g.catVictorias },
+    { id: 'torneos', field: 'catTorneos', label: g.catTorneos },
+    { id: 'jugadas', field: 'catJugadas', label: g.catJugadas },
+    { id: 'comunidad', field: 'catComunidad', label: g.catComunidad },
   ];
 
   return (
@@ -76,7 +76,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ onAddImage }) =>
                 : 'bg-zinc-900 text-zinc-300 border-white/10 hover:text-white'
             }`}
           >
-            {cat.label}
+            <EditableText section="gallery" field={cat.field} label={`Categoría ${cat.label}`} />
           </button>
         ))}
       </div>
@@ -115,13 +115,39 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ onAddImage }) =>
                 <div className="p-4">
                   <div className="flex items-center justify-between text-xs text-purple-400 font-heading uppercase mb-1">
                     <span>{item.category}</span>
-                    <span className="text-zinc-400 font-sans">{item.date}</span>
+                    <EditableValue
+                      value={item.date}
+                      target={{
+                        kind: 'galleryItem',
+                        id: item.id,
+                        field: 'date',
+                        label: 'Fecha de la Captura',
+                      }}
+                      className="text-zinc-400 font-sans"
+                    />
                   </div>
-                  <h3 className="font-heading font-bold text-base text-white uppercase line-clamp-1">
-                    {item.title}
+                  <h3 className="font-heading font-bold text-base text-white uppercase">
+                    <EditableValue
+                      value={item.title}
+                      target={{
+                        kind: 'galleryItem',
+                        id: item.id,
+                        field: 'title',
+                        label: 'Título de la Captura',
+                      }}
+                    />
                   </h3>
-                  <p className="text-xs sm:text-sm text-zinc-300 mt-1 line-clamp-2">
-                    {item.caption}
+                  <p className="text-xs sm:text-sm text-zinc-300 mt-1">
+                    <EditableValue
+                      value={item.caption}
+                      target={{
+                        kind: 'galleryItem',
+                        id: item.id,
+                        field: 'caption',
+                        label: 'Descripción de la Captura',
+                        multiline: true,
+                      }}
+                    />
                   </p>
                 </div>
               </div>

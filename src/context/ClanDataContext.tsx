@@ -15,20 +15,88 @@ import { playSuccessChime, playTapSound } from '../utils/soundAndEffects';
 const STORAGE_KEY = 'baztardos_clan_state_v1';
 const ADMIN_SESSION_KEY = 'baztardos_admin_session';
 
-export interface QuickTextTarget {
-  section: keyof SiteTexts;
-  field: string;
-  label: string;
-  multiline?: boolean;
-}
+export type InlineEditTarget =
+  | {
+      kind: 'siteText';
+      section: keyof SiteTexts;
+      field: string;
+      label: string;
+      multiline?: boolean;
+    }
+  | {
+      kind: 'clanInfo';
+      field: 'name' | 'tag' | 'motto' | 'game' | 'server' | 'foundedYear' | 'announcement';
+      label: string;
+      multiline?: boolean;
+    }
+  | {
+      kind: 'requirement';
+      index: number;
+      label: string;
+    }
+  | {
+      kind: 'rule';
+      index: number;
+      key: 'title' | 'desc';
+      label: string;
+      multiline?: boolean;
+    }
+  | {
+      kind: 'mapStat';
+      index: number;
+      key: 'name' | 'bestScore';
+      label: string;
+    }
+  | {
+      kind: 'upcomingMatch';
+      id: string;
+      field:
+        | 'tournamentName'
+        | 'opponentName'
+        | 'opponentTag'
+        | 'modality'
+        | 'map'
+        | 'serverRegion'
+        | 'caster'
+        | 'notes';
+      label: string;
+      multiline?: boolean;
+    }
+  | {
+      kind: 'rosterMember';
+      id: string;
+      field:
+        | 'gamertag'
+        | 'realName'
+        | 'role'
+        | 'rank'
+        | 'favoriteOperator'
+        | 'favoriteWeapon'
+        | 'country';
+      label: string;
+    }
+  | {
+      kind: 'historyMatch';
+      id: string;
+      field: 'opponentName' | 'map' | 'modality' | 'mvp' | 'ticketsDifference' | 'notes';
+      label: string;
+      multiline?: boolean;
+    }
+  | {
+      kind: 'galleryItem';
+      id: string;
+      field: 'title' | 'caption' | 'date';
+      label: string;
+      multiline?: boolean;
+    };
 
 interface ClanDataContextValue {
   state: ClanState;
   isAdmin: boolean;
   isInlineTextEditMode: boolean;
   setIsInlineTextEditMode: (val: boolean) => void;
-  editingTextTarget: QuickTextTarget | null;
-  openQuickTextEdit: (target: QuickTextTarget) => void;
+  editingTextTarget: InlineEditTarget | null;
+  openQuickTextEdit: (target: InlineEditTarget) => void;
   closeQuickTextEdit: () => void;
   selectedTimezone: string;
   setSelectedTimezone: (tz: string) => void;
@@ -48,6 +116,7 @@ interface ClanDataContextValue {
   updateHistoryMatch: (id: string, partial: Partial<HistoryMatch>) => void;
   deleteHistoryMatch: (id: string) => void;
   addGalleryItem: (item: Omit<GalleryItem, 'id'>) => void;
+  updateGalleryItem: (id: string, partial: Partial<GalleryItem>) => void;
   deleteGalleryItem: (id: string) => void;
   resetToDefaults: () => void;
   exportBackupJson: () => void;
@@ -94,8 +163,15 @@ export const ClanDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   });
 
-  const [isInlineTextEditMode, setIsInlineTextEditMode] = useState<boolean>(false);
-  const [editingTextTarget, setEditingTextTarget] = useState<QuickTextTarget | null>(null);
+  const [isInlineTextEditMode, setIsInlineTextEditMode] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const [editingTextTarget, setEditingTextTarget] = useState<InlineEditTarget | null>(null);
   const [selectedTimezone, setSelectedTimezone] = useState<string>('America/Bogota');
 
   useEffect(() => {
@@ -109,6 +185,7 @@ export const ClanDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const loginAdmin = (pin: string) => {
     if (pin.trim() === '2507') {
       setIsAdmin(true);
+      setIsInlineTextEditMode(true);
       try {
         sessionStorage.setItem(ADMIN_SESSION_KEY, 'true');
       } catch {
@@ -132,7 +209,7 @@ export const ClanDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     playTapSound();
   };
 
-  const openQuickTextEdit = (target: QuickTextTarget) => {
+  const openQuickTextEdit = (target: InlineEditTarget) => {
     setEditingTextTarget(target);
     playTapSound();
   };
@@ -250,6 +327,14 @@ export const ClanDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     playTapSound();
   };
 
+  const updateGalleryItem = (id: string, partial: Partial<GalleryItem>) => {
+    setState((prev) => ({
+      ...prev,
+      gallery: prev.gallery.map((g) => (g.id === id ? { ...g, ...partial } : g)),
+    }));
+    playTapSound();
+  };
+
   const deleteGalleryItem = (id: string) => {
     setState((prev) => ({
       ...prev,
@@ -343,6 +428,7 @@ export const ClanDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updateHistoryMatch,
         deleteHistoryMatch,
         addGalleryItem,
+        updateGalleryItem,
         deleteGalleryItem,
         resetToDefaults,
         exportBackupJson,

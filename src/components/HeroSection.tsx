@@ -15,7 +15,8 @@ import { useClanData } from '../context/ClanDataContext';
 import { formatMatchTime, getCountdown, getWorldMatchTimes } from '../utils/timezones';
 import { playTapSound } from '../utils/soundAndEffects';
 import { SmartImage } from './SmartImage';
-import { EditableText } from './EditableText';
+import { EditableText, EditableValue } from './EditableText';
+import { resolveAssetUrl } from '../data/defaultClanData';
 
 interface HeroSectionProps {
   onEditNextMatch: () => void;
@@ -52,13 +53,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
   const worldTimes = nextMatch ? getWorldMatchTimes(nextMatch.matchDate) : [];
   const localFormatted = nextMatch ? formatMatchTime(nextMatch.matchDate, selectedTimezone) : null;
+  const resolvedBannerUrl = resolveAssetUrl(state.info.bannerUrl);
+  const captain = state.roster[0];
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-[#130a22] via-[#090a10] to-[#07080c] border-b border-white/10 pt-5 pb-10 sm:pt-8 sm:pb-14 px-4 sm:px-6 lg:px-8">
       {/* Background Banner */}
       <div
         className="absolute inset-0 opacity-25 pointer-events-none bg-cover bg-center"
-        style={{ backgroundImage: `url(${state.info.bannerUrl})` }}
+        style={{ backgroundImage: `url(${resolvedBannerUrl})` }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-[#07080c] via-black/55 to-black/75 pointer-events-none" />
       <div className="absolute inset-0 tactical-grid pointer-events-none opacity-45" />
@@ -72,9 +75,16 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 <Megaphone className="w-4 h-4 text-purple-400 shrink-0" />
                 <EditableText section="hero" field="announcementBadge" label="Etiqueta Comunicado" />
               </span>
-              <span className="text-zinc-200 line-clamp-2 sm:truncate leading-snug">
-                {state.info.announcement}
-              </span>
+              <EditableValue
+                value={state.info.announcement}
+                target={{
+                  kind: 'clanInfo',
+                  field: 'announcement',
+                  label: 'Comunicado Superior',
+                  multiline: true,
+                }}
+                className="text-zinc-200 leading-snug"
+              />
             </div>
             {isAdmin && (
               <button
@@ -94,18 +104,33 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         {/* Clan Headline */}
         <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8">
           <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs font-semibold uppercase tracking-wider text-purple-400 font-heading mb-2">
-            <span>{state.info.game}</span>
+            <EditableValue
+              value={state.info.game}
+              target={{ kind: 'clanInfo', field: 'game', label: 'Juego Principal' }}
+            />
             <span aria-hidden="true" className="text-zinc-600">·</span>
             <EditableText section="hero" field="kickerSub" label="Sub-etiqueta Hero" />
             <span aria-hidden="true" className="text-zinc-600">·</span>
-            <span className="text-zinc-300 font-mono-numbers">{state.info.tag}</span>
+            <EditableValue
+              value={state.info.tag}
+              target={{ kind: 'clanInfo', field: 'tag', label: 'Tag Oficial del Clan' }}
+              className="text-zinc-300 font-mono-numbers"
+            />
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold uppercase tracking-tight text-white font-heading [text-wrap:balance]">
-            {state.info.name}
+            <EditableValue
+              value={state.info.name}
+              target={{ kind: 'clanInfo', field: 'name', label: 'Nombre Principal del Clan' }}
+            />
           </h1>
           <p className="mt-2 text-sm sm:text-base text-zinc-300 max-w-2xl mx-auto leading-relaxed">
-            “{state.info.motto}”
+            <EditableValue
+              value={state.info.motto}
+              target={{ kind: 'clanInfo', field: 'motto', label: 'Lema de Batalla', multiline: true }}
+              prefix="“"
+              suffix="”"
+            />
           </p>
         </div>
 
@@ -116,17 +141,41 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b border-white/10 text-xs text-zinc-300">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <Swords className="w-4 h-4 text-purple-400 shrink-0" />
-                <span className="font-bold uppercase tracking-wider text-purple-300 font-heading">
-                  {nextMatch.tournamentName || 'Enfrentamiento de Clanes'}
-                </span>
+                <EditableValue
+                  value={nextMatch.tournamentName || 'Enfrentamiento de Clanes'}
+                  target={{
+                    kind: 'upcomingMatch',
+                    id: nextMatch.id,
+                    field: 'tournamentName',
+                    label: 'Torneo / Liga del Versus',
+                  }}
+                  className="font-bold uppercase tracking-wider text-purple-300 font-heading"
+                />
                 <span aria-hidden="true" className="text-zinc-600">·</span>
-                <span className="text-zinc-300">{nextMatch.modality}</span>
+                <EditableValue
+                  value={nextMatch.modality}
+                  target={{
+                    kind: 'upcomingMatch',
+                    id: nextMatch.id,
+                    field: 'modality',
+                    label: 'Modalidad del Versus',
+                  }}
+                  className="text-zinc-300"
+                />
               </div>
 
               <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5">
                 <span className="flex items-center gap-1.5 text-zinc-300 text-xs">
                   <MapPin className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-                  {nextMatch.map}
+                  <EditableValue
+                    value={nextMatch.map}
+                    target={{
+                      kind: 'upcomingMatch',
+                      id: nextMatch.id,
+                      field: 'map',
+                      label: 'Mapa del Versus',
+                    }}
+                  />
                 </span>
 
                 {isAdmin && (
@@ -160,7 +209,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
             {/* Faceoff: Side-by-side compact on Android, 11-col on Desktop */}
             <div className="grid grid-cols-1 md:grid-cols-11 gap-5 items-center">
-              {/* Mobile Faceoff Row (side by side for Android screens) */}
+              {/* Mobile Faceoff Row */}
               <div className="grid grid-cols-11 items-center gap-2 md:hidden">
                 <div className="col-span-5 flex flex-col items-center text-center">
                   <div className="relative">
@@ -186,16 +235,26 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                       </button>
                     )}
                   </div>
-                  <h2 className="mt-2.5 text-sm font-bold uppercase text-white font-heading leading-tight line-clamp-2">
-                    {state.info.name}
+                  <h2 className="mt-2.5 text-sm font-bold uppercase text-white font-heading leading-tight">
+                    <EditableValue
+                      value={state.info.name}
+                      target={{ kind: 'clanInfo', field: 'name', label: 'Nombre del Clan' }}
+                    />
                   </h2>
-                  <span className="text-[11px] text-purple-400 font-mono-numbers mt-0.5">
-                    {state.info.tag}
-                  </span>
+                  <EditableValue
+                    value={state.info.tag}
+                    target={{ kind: 'clanInfo', field: 'tag', label: 'Tag del Clan' }}
+                    className="text-[11px] text-purple-400 font-mono-numbers mt-0.5"
+                  />
                 </div>
 
                 <div className="col-span-1 flex flex-col items-center justify-center">
-                  <span className="font-heading font-black text-lg text-purple-400">VS</span>
+                  <EditableText
+                    section="hero"
+                    field="vsBadge"
+                    label="Texto central VS"
+                    className="font-heading font-black text-lg text-purple-400"
+                  />
                 </div>
 
                 <div className="col-span-5 flex flex-col items-center text-center">
@@ -207,12 +266,27 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                       className="w-full h-full object-contain"
                     />
                   </div>
-                  <h2 className="mt-2.5 text-sm font-bold uppercase text-white font-heading leading-tight line-clamp-2">
-                    {nextMatch.opponentName}
+                  <h2 className="mt-2.5 text-sm font-bold uppercase text-white font-heading leading-tight">
+                    <EditableValue
+                      value={nextMatch.opponentName}
+                      target={{
+                        kind: 'upcomingMatch',
+                        id: nextMatch.id,
+                        field: 'opponentName',
+                        label: 'Nombre del Rival',
+                      }}
+                    />
                   </h2>
-                  <span className="text-[11px] text-rose-400 font-mono-numbers mt-0.5">
-                    {nextMatch.opponentTag}
-                  </span>
+                  <EditableValue
+                    value={nextMatch.opponentTag}
+                    target={{
+                      kind: 'upcomingMatch',
+                      id: nextMatch.id,
+                      field: 'opponentTag',
+                      label: 'Tag del Rival',
+                    }}
+                    className="text-[11px] text-rose-400 font-mono-numbers mt-0.5"
+                  />
                 </div>
               </div>
 
@@ -242,14 +316,33 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   )}
                 </div>
                 <h2 className="text-2xl font-bold uppercase tracking-wide text-white font-heading">
-                  {state.info.name}
+                  <EditableValue
+                    value={state.info.name}
+                    target={{ kind: 'clanInfo', field: 'name', label: 'Nombre del Clan' }}
+                  />
                 </h2>
                 <div className="text-xs text-purple-400 font-mono-numbers mt-0.5">
-                  {state.info.tag} · <EditableText section="hero" field="localTeamLabel" label="Etiqueta Local" />
+                  <EditableValue
+                    value={state.info.tag}
+                    target={{ kind: 'clanInfo', field: 'tag', label: 'Tag del Clan' }}
+                  />{' '}
+                  · <EditableText section="hero" field="localTeamLabel" label="Etiqueta Local" />
                 </div>
                 <div className="text-xs text-zinc-400 mt-1">
                   <EditableText section="hero" field="captainPrefix" label="Prefijo Capitán" />:{' '}
-                  {state.roster[0]?.gamertag || 'Comandante BZT'}
+                  {captain ? (
+                    <EditableValue
+                      value={captain.gamertag}
+                      target={{
+                        kind: 'rosterMember',
+                        id: captain.id,
+                        field: 'gamertag',
+                        label: 'Gamertag del Capitán',
+                      }}
+                    />
+                  ) : (
+                    'Comandante BZT'
+                  )}
                 </div>
               </div>
 
@@ -296,7 +389,16 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 <div className="text-xs sm:text-sm text-zinc-200 font-medium">
                   {localFormatted?.fullString}
                 </div>
-                <div className="text-[11px] text-zinc-400 mt-0.5">{nextMatch.serverRegion}</div>
+                <EditableValue
+                  value={nextMatch.serverRegion}
+                  target={{
+                    kind: 'upcomingMatch',
+                    id: nextMatch.id,
+                    field: 'serverRegion',
+                    label: 'Región Servidor del Versus',
+                  }}
+                  className="text-[11px] text-zinc-400 mt-0.5"
+                />
               </div>
 
               {/* Desktop Right Team */}
@@ -310,23 +412,57 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   />
                 </div>
                 <h2 className="text-2xl font-bold uppercase tracking-wide text-white font-heading">
-                  {nextMatch.opponentName}
+                  <EditableValue
+                    value={nextMatch.opponentName}
+                    target={{
+                      kind: 'upcomingMatch',
+                      id: nextMatch.id,
+                      field: 'opponentName',
+                      label: 'Nombre del Rival',
+                    }}
+                  />
                 </h2>
                 <div className="text-xs text-rose-400 font-mono-numbers mt-0.5">
-                  {nextMatch.opponentTag} ·{' '}
-                  <EditableText section="hero" field="visitorTeamLabel" label="Etiqueta Rival" />
+                  <EditableValue
+                    value={nextMatch.opponentTag}
+                    target={{
+                      kind: 'upcomingMatch',
+                      id: nextMatch.id,
+                      field: 'opponentTag',
+                      label: 'Tag del Rival',
+                    }}
+                  />{' '}
+                  · <EditableText section="hero" field="visitorTeamLabel" label="Etiqueta Rival" />
                 </div>
                 {nextMatch.caster && (
-                  <div className="text-xs text-zinc-400 mt-1">Cast: {nextMatch.caster}</div>
+                  <div className="text-xs text-zinc-400 mt-1">
+                    Cast:{' '}
+                    <EditableValue
+                      value={nextMatch.caster}
+                      target={{
+                        kind: 'upcomingMatch',
+                        id: nextMatch.id,
+                        field: 'caster',
+                        label: 'Caster del Versus',
+                      }}
+                    />
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* International Times Strip (Horizontal snap scroll on Android!) */}
+            {/* International Times Strip */}
             <div className="mt-6 pt-5 border-t border-white/10">
               <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2.5 flex items-center justify-between">
                 <EditableText section="hero" field="worldTimesTitle" label="Título Horarios Internacionales" />
-                <span className="text-[11px] text-zinc-500 sm:hidden">Desliza →</span>
+                <span className="sm:hidden">
+                  <EditableText
+                    section="hero"
+                    field="swipeHint"
+                    label="Texto deslizar móvil"
+                    className="text-[11px] text-zinc-500"
+                  />
+                </span>
               </div>
               <div className="flex sm:grid sm:grid-cols-4 lg:grid-cols-8 gap-2 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-1">
                 {worldTimes.map((item) => (
@@ -348,7 +484,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
             </div>
 
-            {/* Action Buttons (Full width 48px stack on Android, inline row on Desktop) */}
+            {/* Action Buttons */}
             <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3">
               <button
                 type="button"

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Shield } from 'lucide-react';
+import { resolveAssetUrl } from '../data/defaultClanData';
 
 interface SmartImageProps {
   src?: string;
@@ -16,11 +17,12 @@ export const SmartImage: React.FC<SmartImageProps> = ({
   className = 'w-full h-full object-cover',
   fallbackClassName = '',
 }) => {
+  const resolvedSrc = resolveAssetUrl(src);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     setFailed(false);
-  }, [src]);
+  }, [resolvedSrc]);
 
   const initials = (fallbackText || alt || 'BZT')
     .replace(/[^a-zA-Z0-9\s_]/g, '')
@@ -30,7 +32,7 @@ export const SmartImage: React.FC<SmartImageProps> = ({
     .map((p) => p[0]?.toUpperCase() || '')
     .join('') || 'BZT';
 
-  if (!src || failed) {
+  if (!resolvedSrc || failed) {
     return (
       <div
         className={`w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-950/70 via-[#12141f] to-[#0a0b11] text-purple-200 select-none ${fallbackClassName}`}
@@ -49,7 +51,7 @@ export const SmartImage: React.FC<SmartImageProps> = ({
 
   return (
     <img
-      src={src}
+      src={resolvedSrc}
       alt={alt}
       referrerPolicy="no-referrer"
       className={className}

@@ -1,7 +1,104 @@
 import React, { useEffect, useState } from 'react';
 import { Check, RotateCcw, Type, X } from 'lucide-react';
-import { useClanData } from '../context/ClanDataContext';
-import { DEFAULT_TEXTS, TEXT_SECTION_LABELS } from '../data/defaultClanData';
+import { InlineEditTarget, useClanData } from '../context/ClanDataContext';
+import {
+  DEFAULT_CLAN_STATE,
+  DEFAULT_TEXTS,
+  TEXT_SECTION_LABELS,
+} from '../data/defaultClanData';
+
+function getCurrentValueAndDefault(
+  state: ReturnType<typeof useClanData>['state'],
+  target: InlineEditTarget
+): { current: string; fallback: string | null; categoryTitle: string; multiline: boolean } {
+  switch (target.kind) {
+    case 'siteText': {
+      const sectionObj = state.texts[target.section] as unknown as Record<string, unknown>;
+      const defSectionObj = DEFAULT_TEXTS[target.section] as unknown as Record<string, unknown>;
+      return {
+        current: typeof sectionObj?.[target.field] === 'string' ? (sectionObj[target.field] as string) : '',
+        fallback:
+          typeof defSectionObj?.[target.field] === 'string'
+            ? (defSectionObj[target.field] as string)
+            : '',
+        categoryTitle: TEXT_SECTION_LABELS[target.section],
+        multiline: Boolean(target.multiline),
+      };
+    }
+    case 'clanInfo': {
+      return {
+        current: state.info[target.field] || '',
+        fallback: DEFAULT_CLAN_STATE.info[target.field] || '',
+        categoryTitle: 'Información del Clan',
+        multiline: Boolean(target.multiline),
+      };
+    }
+    case 'requirement': {
+      return {
+        current: state.info.recruitmentRequirements[target.index] || '',
+        fallback: DEFAULT_CLAN_STATE.info.recruitmentRequirements[target.index] ?? null,
+        categoryTitle: 'Requisitos de Postulación',
+        multiline: true,
+      };
+    }
+    case 'rule': {
+      const rule = state.texts.info.rules[target.index];
+      const defRule = DEFAULT_TEXTS.info.rules[target.index];
+      return {
+        current: rule ? rule[target.key] : '',
+        fallback: defRule ? defRule[target.key] : null,
+        categoryTitle: 'Código de Conducta',
+        multiline: Boolean(target.multiline),
+      };
+    }
+    case 'mapStat': {
+      const item = state.texts.stats.mapStats[target.index];
+      const defItem = DEFAULT_TEXTS.stats.mapStats[target.index];
+      return {
+        current: item ? String(item[target.key]) : '',
+        fallback: defItem ? String(defItem[target.key]) : null,
+        categoryTitle: 'Efectividad por Mapa',
+        multiline: false,
+      };
+    }
+    case 'upcomingMatch': {
+      const match = state.upcomingMatches.find((m) => m.id === target.id);
+      return {
+        current: match ? String(match[target.field] || '') : '',
+        fallback: null,
+        categoryTitle: 'Versus Programado',
+        multiline: Boolean(target.multiline),
+      };
+    }
+    case 'rosterMember': {
+      const member = state.roster.find((m) => m.id === target.id);
+      return {
+        current: member ? String(member[target.field] || '') : '',
+        fallback: null,
+        categoryTitle: 'Operador del Roster',
+        multiline: false,
+      };
+    }
+    case 'historyMatch': {
+      const match = state.history.find((m) => m.id === target.id);
+      return {
+        current: match ? String(match[target.field] || '') : '',
+        fallback: null,
+        categoryTitle: 'Historial de Partidos',
+        multiline: Boolean(target.multiline),
+      };
+    }
+    case 'galleryItem': {
+      const item = state.gallery.find((g) => g.id === target.id);
+      return {
+        current: item ? String(item[target.field] || '') : '',
+        fallback: null,
+        categoryTitle: 'Galería Táctica',
+        multiline: Boolean(target.multiline),
+      };
+    }
+  }
+}
 
 export const QuickTextEditModal: React.FC = () => {
   const {
@@ -9,28 +106,71 @@ export const QuickTextEditModal: React.FC = () => {
     editingTextTarget,
     closeQuickTextEdit,
     setSingleSiteText,
+    updateClanInfo,
+    updateSiteTexts,
+    updateUpcomingMatch,
+    updateRosterMember,
+    updateHistoryMatch,
+    updateGalleryItem,
   } = useClanData();
 
   const [value, setValue] = useState('');
 
   useEffect(() => {
     if (!editingTextTarget) return;
-    const sectionObj = state.texts[editingTextTarget.section] as unknown as Record<string, unknown>;
-    const current = sectionObj?.[editingTextTarget.field];
-    setValue(typeof current === 'string' ? current : '');
-  }, [editingTextTarget, state.texts]);
+    const info = getCurrentValueAndDefault(state, editingTextTarget);
+    setValue(info.current);
+  }, [editingTextTarget, state]);
 
   if (!editingTextTarget) return null;
 
-  const defaultSectionObj = DEFAULT_TEXTS[editingTextTarget.section] as unknown as Record<string, unknown>;
-  const defaultVal =
-    typeof defaultSectionObj?.[editingTextTarget.field] === 'string'
-      ? (defaultSectionObj[editingTextTarget.field] as string)
-      : '';
+  const { fallback, categoryTitle, multiline } = getCurrentValueAndDefault(
+    state,
+    editingTextTarget
+  );
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    setSingleSiteText(editingTextTarget.section, editingTextTarget.field, value);
+    switch (editingTextTarget.kind) {
+      case 'siteText':
+        setSingleSiteText(editingTextTarget.section, editingTextTarget.field, value);
+        break;
+      case 'clanInfo':
+        updateClanInfo({ [editingTextTarget.field]: value });
+        break;
+      case 'requirement': {
+        const nextReqs = [...state.info.recruitmentRequirements];
+        nextReqs[editingTextTarget.index] = value.trim();
+        updateClanInfo({ recruitmentRequirements: nextReqs.filter(Boolean) });
+        break;
+      }
+      case 'rule': {
+        const nextRules = state.texts.info.rules.map((r, i) =>
+          i === editingTextTarget.index ? { ...r, [editingTextTarget.key]: value } : r
+        );
+        updateSiteTexts('info', { rules: nextRules });
+        break;
+      }
+      case 'mapStat': {
+        const nextMaps = state.texts.stats.mapStats.map((m, i) =>
+          i === editingTextTarget.index ? { ...m, [editingTextTarget.key]: value } : m
+        );
+        updateSiteTexts('stats', { mapStats: nextMaps });
+        break;
+      }
+      case 'upcomingMatch':
+        updateUpcomingMatch(editingTextTarget.id, { [editingTextTarget.field]: value });
+        break;
+      case 'rosterMember':
+        updateRosterMember(editingTextTarget.id, { [editingTextTarget.field]: value });
+        break;
+      case 'historyMatch':
+        updateHistoryMatch(editingTextTarget.id, { [editingTextTarget.field]: value });
+        break;
+      case 'galleryItem':
+        updateGalleryItem(editingTextTarget.id, { [editingTextTarget.field]: value });
+        break;
+    }
     closeQuickTextEdit();
   };
 
@@ -52,7 +192,7 @@ export const QuickTextEditModal: React.FC = () => {
             </div>
             <div>
               <div className="text-[11px] font-semibold text-purple-400 uppercase tracking-wider">
-                {TEXT_SECTION_LABELS[editingTextTarget.section]}
+                {categoryTitle}
               </div>
               <h3 className="font-heading font-bold text-base sm:text-lg text-white">
                 {editingTextTarget.label}
@@ -72,9 +212,9 @@ export const QuickTextEditModal: React.FC = () => {
         <form onSubmit={handleSave} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-zinc-300 mb-2">
-              Texto visible en la web
+              Texto en pantalla
             </label>
-            {editingTextTarget.multiline ? (
+            {multiline ? (
               <textarea
                 rows={4}
                 value={value}
@@ -94,14 +234,16 @@ export const QuickTextEditModal: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/10">
-            <button
-              type="button"
-              onClick={() => setValue(defaultVal)}
-              className="min-h-[44px] px-3.5 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 text-xs font-semibold flex items-center gap-1.5"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Restaurar original
-            </button>
+            {fallback !== null && (
+              <button
+                type="button"
+                onClick={() => setValue(fallback)}
+                className="min-h-[44px] px-3.5 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 text-xs font-semibold flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Restaurar original
+              </button>
+            )}
             <div className="flex items-center gap-2 ml-auto">
               <button
                 type="button"

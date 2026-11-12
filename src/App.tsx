@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Image as ImageIcon, Pencil, Shield, Trophy, Users } from 'lucide-react';
+import { Check, Eye, Image as ImageIcon, Pencil, Shield, Trophy, Users } from 'lucide-react';
 import { ClanDataProvider, useClanData } from './context/ClanDataContext';
 import { HistoryMatch, RosterMember, TabId, UpcomingMatch } from './types/clan';
 import { playTapSound } from './utils/soundAndEffects';
@@ -13,7 +13,7 @@ import { GallerySection } from './components/GallerySection';
 import { InfoSection } from './components/InfoSection';
 import { Footer } from './components/Footer';
 import { SmartImage } from './components/SmartImage';
-import { EditableText } from './components/EditableText';
+import { EditableText, EditableValue } from './components/EditableText';
 import { QuickTextEditModal } from './components/QuickTextEditModal';
 import { AdminAuthModal } from './components/modals/AdminAuthModal';
 import { AdminPanelModal } from './components/modals/AdminPanelModal';
@@ -105,8 +105,8 @@ const ClanAppContent: React.FC = () => {
               }}
               className="min-h-[36px] px-3.5 py-1 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-heading font-bold uppercase tracking-wider flex items-center gap-1.5"
             >
-              <Check className="w-3.5 h-3.5" />
-              Listo
+              <Eye className="w-3.5 h-3.5" />
+              Vista Previa
             </button>
           </div>
         </div>
@@ -188,11 +188,38 @@ const ClanAppContent: React.FC = () => {
                       </div>
                       <div className="min-w-0">
                         <div className="font-heading font-bold text-xs sm:text-sm uppercase text-white truncate">
-                          {member.gamertag}
+                          <EditableValue
+                            value={member.gamertag}
+                            target={{
+                              kind: 'rosterMember',
+                              id: member.id,
+                              field: 'gamertag',
+                              label: 'Gamertag del Jugador',
+                            }}
+                          />
                         </div>
-                        <div className="text-[11px] text-purple-400 truncate">{member.role}</div>
-                        <div className="text-[11px] text-zinc-400 font-mono-numbers">
-                          {member.kdRatio} K/D · {member.favoriteOperator.split(' ')[0]}
+                        <div className="text-[11px] text-purple-400 truncate mt-0.5">
+                          <EditableValue
+                            value={member.role}
+                            target={{
+                              kind: 'rosterMember',
+                              id: member.id,
+                              field: 'role',
+                              label: 'Rol del Jugador',
+                            }}
+                          />
+                        </div>
+                        <div className="text-[11px] text-zinc-400 font-mono-numbers mt-0.5 truncate">
+                          {member.kdRatio} K/D ·{' '}
+                          <EditableValue
+                            value={member.favoriteOperator}
+                            target={{
+                              kind: 'rosterMember',
+                              id: member.id,
+                              field: 'favoriteOperator',
+                              label: 'Operador Favorito',
+                            }}
+                          />
                         </div>
                       </div>
                     </button>
@@ -294,12 +321,16 @@ const ClanAppContent: React.FC = () => {
             }}
             className={`min-h-[40px] px-3 py-1.5 rounded-xl font-heading font-bold uppercase text-xs flex items-center gap-1.5 transition-colors ${
               isInlineTextEditMode
-                ? 'bg-emerald-600 text-white'
+                ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
                 : 'bg-zinc-800 hover:bg-zinc-700 text-purple-200 border border-purple-500/30'
             }`}
-            title="Activar o desactivar edición directa de textos"
+            title="Activar o desactivar edición directa de textos en pantalla"
           >
-            <Pencil className="w-3.5 h-3.5" />
+            {isInlineTextEditMode ? (
+              <Check className="w-3.5 h-3.5" />
+            ) : (
+              <Pencil className="w-3.5 h-3.5" />
+            )}
             <span>{isInlineTextEditMode ? 'Editando Textos' : 'Editar Textos'}</span>
           </button>
 

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Image as ImageIcon, Link as LinkIcon, Upload } from 'lucide-react';
 import { SmartImage } from './SmartImage';
 
@@ -26,6 +26,10 @@ export const ImageUploaderField: React.FC<ImageUploaderFieldProps> = ({
 }) => {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [urlInput, setUrlInput] = useState(value);
+
+  useEffect(() => {
+    setUrlInput(value);
+  }, [value]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

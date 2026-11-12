@@ -22,7 +22,7 @@ import { TabId } from '../types/clan';
 import { TIMEZONE_OPTIONS } from '../utils/timezones';
 import { isSoundEnabled, playTapSound, toggleSoundEnabled } from '../utils/soundAndEffects';
 import { SmartImage } from './SmartImage';
-import { EditableText } from './EditableText';
+import { EditableText, EditableValue } from './EditableText';
 
 interface NavbarProps {
   activeTab: TabId;
@@ -96,9 +96,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="w-full h-full object-cover"
               />
             </div>
-            <span className="font-heading font-bold text-sm sm:text-base md:text-lg tracking-tight text-white whitespace-nowrap">
-              {state.info.name}
-            </span>
+            <EditableValue
+              value={state.info.name}
+              target={{ kind: 'clanInfo', field: 'name', label: 'Nombre del Clan' }}
+              className="font-heading font-bold text-sm sm:text-base md:text-lg tracking-tight text-white whitespace-nowrap"
+            />
           </button>
 
           {/* Zone 2: Desktop Single-Line Navigation */}
@@ -200,7 +202,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                   : 'text-zinc-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              {item.label}
+              <EditableText
+                section="nav"
+                field={item.field}
+                label={`Pestaña ${item.label}`}
+              />
             </button>
           );
         })}
@@ -303,7 +309,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <div className="flex items-center gap-3">
                       <span className="text-purple-400">{item.icon}</span>
                       <span className="font-heading font-semibold text-sm uppercase tracking-wide">
-                        {item.label}
+                        <EditableText
+                          section="nav"
+                          field={item.field}
+                          label={`Pestaña ${item.label}`}
+                        />
                       </span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-zinc-500" />

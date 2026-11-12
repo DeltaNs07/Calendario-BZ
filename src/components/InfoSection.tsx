@@ -13,7 +13,7 @@ import {
 import { useClanData } from '../context/ClanDataContext';
 import { playTapSound } from '../utils/soundAndEffects';
 import { SmartImage } from './SmartImage';
-import { EditableText } from './EditableText';
+import { EditableText, EditableValue } from './EditableText';
 
 interface InfoSectionProps {
   onEditInfo: () => void;
@@ -82,14 +82,30 @@ export const InfoSection: React.FC<InfoSectionProps> = ({ onEditInfo, onEditLogo
               />
             </div>
             <h3 className="text-center font-heading font-bold text-xl uppercase text-white">
-              {info.name}
+              <EditableValue
+                value={info.name}
+                target={{ kind: 'clanInfo', field: 'name', label: 'Nombre del Clan' }}
+              />
             </h3>
-            <div className="text-center text-xs text-purple-400 font-mono-numbers mt-0.5">
-              {info.tag} · <EditableText section="info" field="foundedPrefix" label="Prefijo Fundación" />{' '}
-              {info.foundedYear}
+            <div className="text-center text-xs text-purple-400 font-mono-numbers mt-0.5 flex flex-wrap items-center justify-center gap-1">
+              <EditableValue
+                value={info.tag}
+                target={{ kind: 'clanInfo', field: 'tag', label: 'Tag del Clan' }}
+              />
+              <span>·</span>
+              <EditableText section="info" field="foundedPrefix" label="Prefijo Fundación" />
+              <EditableValue
+                value={info.foundedYear}
+                target={{ kind: 'clanInfo', field: 'foundedYear', label: 'Año de Fundación' }}
+              />
             </div>
             <p className="text-center text-xs sm:text-sm text-zinc-300 mt-3 leading-relaxed">
-              “{info.motto}”
+              <EditableValue
+                value={info.motto}
+                target={{ kind: 'clanInfo', field: 'motto', label: 'Lema del Clan', multiline: true }}
+                prefix="“"
+                suffix="”"
+              />
             </p>
 
             <div className="mt-5 pt-4 border-t border-white/10 space-y-2.5 text-xs sm:text-sm text-zinc-300">
@@ -97,25 +113,34 @@ export const InfoSection: React.FC<InfoSectionProps> = ({ onEditInfo, onEditLogo
                 <span className="text-zinc-400">
                   <EditableText section="info" field="gameLabel" label="Etiqueta Juego" />
                 </span>
-                <span className="font-semibold text-white text-right">{info.game}</span>
+                <EditableValue
+                  value={info.game}
+                  target={{ kind: 'clanInfo', field: 'game', label: 'Juego Principal' }}
+                  className="font-semibold text-white text-right"
+                />
               </div>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-zinc-400">
                   <EditableText section="info" field="serverLabel" label="Etiqueta Servidor" />
                 </span>
-                <span className="font-semibold text-purple-300 text-right">{info.server}</span>
+                <EditableValue
+                  value={info.server}
+                  target={{ kind: 'clanInfo', field: 'server', label: 'Región / Servidor' }}
+                  className="font-semibold text-purple-300 text-right"
+                />
               </div>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-zinc-400">
                   <EditableText section="info" field="recruitmentLabel" label="Etiqueta Reclutamiento" />
                 </span>
-                <span
+                <EditableText
+                  section="info"
+                  field={info.recruitmentOpen ? 'statusOpen' : 'statusClosed'}
+                  label={info.recruitmentOpen ? 'Texto Reclutamiento Abierto' : 'Texto Reclutamiento Cerrado'}
                   className={`font-bold uppercase ${
                     info.recruitmentOpen ? 'text-emerald-400' : 'text-rose-400'
                   }`}
-                >
-                  {info.recruitmentOpen ? t.statusOpen : t.statusClosed}
-                </span>
+                />
               </div>
             </div>
           </div>
@@ -201,7 +226,11 @@ export const InfoSection: React.FC<InfoSectionProps> = ({ onEditInfo, onEditLogo
                     : 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
                 }`}
               >
-                {info.recruitmentOpen ? t.reqOpenBadge : t.reqClosedBadge}
+                <EditableText
+                  section="info"
+                  field={info.recruitmentOpen ? 'reqOpenBadge' : 'reqClosedBadge'}
+                  label={info.recruitmentOpen ? 'Etiqueta Cupos Disponibles' : 'Etiqueta Reclutamiento Pausado'}
+                />
               </span>
             </div>
 
@@ -216,7 +245,14 @@ export const InfoSection: React.FC<InfoSectionProps> = ({ onEditInfo, onEditLogo
                   className="flex items-start gap-2.5 p-3 rounded-xl bg-black/40 border border-white/10 text-xs sm:text-sm text-zinc-200"
                 >
                   <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-                  <span>{req}</span>
+                  <EditableValue
+                    value={req}
+                    target={{
+                      kind: 'requirement',
+                      index: idx,
+                      label: `Requisito ${idx + 1}`,
+                    }}
+                  />
                 </li>
               ))}
             </ul>
@@ -232,10 +268,30 @@ export const InfoSection: React.FC<InfoSectionProps> = ({ onEditInfo, onEditLogo
                   key={idx}
                   className="p-4 rounded-xl bg-black/40 border border-white/10"
                 >
-                  <div className="font-heading font-bold text-xs sm:text-sm uppercase text-purple-300 mb-1">
-                    0{idx + 1}. {rule.title}
+                  <div className="font-heading font-bold text-xs sm:text-sm uppercase text-purple-300 mb-1 flex items-center gap-1">
+                    <span>0{idx + 1}.</span>
+                    <EditableValue
+                      value={rule.title}
+                      target={{
+                        kind: 'rule',
+                        index: idx,
+                        key: 'title',
+                        label: `Título Regla 0${idx + 1}`,
+                      }}
+                    />
                   </div>
-                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">{rule.desc}</p>
+                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                    <EditableValue
+                      value={rule.desc}
+                      target={{
+                        kind: 'rule',
+                        index: idx,
+                        key: 'desc',
+                        label: `Descripción Regla 0${idx + 1}`,
+                        multiline: true,
+                      }}
+                    />
+                  </p>
                 </div>
               ))}
             </div>

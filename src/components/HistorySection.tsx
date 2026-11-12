@@ -4,7 +4,7 @@ import { useClanData } from '../context/ClanDataContext';
 import { HistoryMatch, MatchOutcome } from '../types/clan';
 import { launchVictoryBurst, playTapSound } from '../utils/soundAndEffects';
 import { SmartImage } from './SmartImage';
-import { EditableText } from './EditableText';
+import { EditableText, EditableValue } from './EditableText';
 
 interface HistorySectionProps {
   onAddHistoryMatch: () => void;
@@ -137,10 +137,10 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div className="flex p-1 bg-zinc-900 border border-white/10 rounded-xl overflow-x-auto no-scrollbar">
           {[
-            { id: 'all', label: `${r.filterAll} (${state.history.length})`, activeCls: 'bg-purple-600 text-white' },
-            { id: 'win', label: `${r.filterWins} (${stats.wins})`, activeCls: 'bg-emerald-600 text-white' },
-            { id: 'draw', label: `${r.filterDraws} (${stats.draws})`, activeCls: 'bg-purple-700 text-white' },
-            { id: 'loss', label: `${r.filterLosses} (${stats.losses})`, activeCls: 'bg-rose-600 text-white' },
+            { id: 'all', field: 'filterAll', label: 'Filtro Todos', count: state.history.length, activeCls: 'bg-purple-600 text-white' },
+            { id: 'win', field: 'filterWins', label: 'Filtro Victorias', count: stats.wins, activeCls: 'bg-emerald-600 text-white' },
+            { id: 'draw', field: 'filterDraws', label: 'Filtro Empates', count: stats.draws, activeCls: 'bg-purple-700 text-white' },
+            { id: 'loss', field: 'filterLosses', label: 'Filtro Derrotas', count: stats.losses, activeCls: 'bg-rose-600 text-white' },
           ].map((btn) => (
             <button
               key={btn.id}
@@ -153,13 +153,23 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
                 outcomeFilter === btn.id ? `${btn.activeCls} font-bold` : 'text-zinc-400 hover:text-white'
               }`}
             >
-              {btn.label}
+              <EditableText
+                section="record"
+                field={btn.field}
+                label={btn.label}
+                suffix={` (${btn.count})`}
+              />
             </button>
           ))}
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-400 shrink-0">{r.modeLabel}</span>
+          <EditableText
+            section="record"
+            field="modeLabel"
+            label="Etiqueta Modo"
+            className="text-xs text-zinc-400 shrink-0"
+          />
           <select
             value={modeFilter}
             onChange={(e) => {
@@ -215,7 +225,11 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
                           : 'bg-purple-950/60 text-purple-300 border border-purple-500/35'
                       }`}
                     >
-                      {isWin ? r.winBadge : isLoss ? r.lossBadge : r.drawBadge}
+                      <EditableText
+                        section="record"
+                        field={isWin ? 'winBadge' : isLoss ? 'lossBadge' : 'drawBadge'}
+                        label={isWin ? 'Etiqueta Victoria' : isLoss ? 'Etiqueta Derrota' : 'Etiqueta Empate'}
+                      />
                     </span>
                     <span className="text-xs text-zinc-400 font-mono-numbers">{match.date}</span>
                   </div>
@@ -247,9 +261,16 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2.5 min-w-0 justify-end">
-                      <span className="font-heading font-bold text-sm text-zinc-200 truncate text-right">
-                        {match.opponentName}
-                      </span>
+                      <EditableValue
+                        value={match.opponentName}
+                        target={{
+                          kind: 'historyMatch',
+                          id: match.id,
+                          field: 'opponentName',
+                          label: 'Nombre del Rival',
+                        }}
+                        className="font-heading font-bold text-sm text-zinc-200 truncate text-right"
+                      />
                       <div className="w-9 h-9 rounded-xl bg-black border border-white/15 overflow-hidden shrink-0">
                         <SmartImage
                           src={match.opponentLogo}
@@ -263,10 +284,27 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
 
                   {/* Details & Admin Actions */}
                   <div className="flex flex-wrap items-center justify-between lg:justify-end gap-3 text-xs">
-                    <div className="text-zinc-400">
-                      <span className="text-zinc-200 font-medium">{match.map}</span>
-                      <span className="mx-1.5" aria-hidden="true">·</span>
-                      <span>{match.modality}</span>
+                    <div className="text-zinc-400 flex flex-wrap items-center gap-1.5">
+                      <EditableValue
+                        value={match.map}
+                        target={{
+                          kind: 'historyMatch',
+                          id: match.id,
+                          field: 'map',
+                          label: 'Mapa del Partido',
+                        }}
+                        className="text-zinc-200 font-medium"
+                      />
+                      <span aria-hidden="true">·</span>
+                      <EditableValue
+                        value={match.modality}
+                        target={{
+                          kind: 'historyMatch',
+                          id: match.id,
+                          field: 'modality',
+                          label: 'Modalidad del Partido',
+                        }}
+                      />
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -278,7 +316,7 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
                           className="min-h-[38px] px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-heading font-semibold uppercase flex items-center gap-1.5"
                         >
                           <ExternalLink className="w-3.5 h-3.5 text-purple-400" />
-                          {r.vodBtn}
+                          <EditableText section="record" field="vodBtn" label="Botón Ver VOD" />
                         </a>
                       )}
 
@@ -316,15 +354,50 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
                 {(match.mvp || match.notes) && (
                   <div className="mt-3 pt-3 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-zinc-400">
                     {match.mvp && (
-                      <div>
-                        <strong className="text-purple-300">{r.mvpLabel}</strong>{' '}
-                        <span className="text-zinc-200">{match.mvp}</span>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <strong className="text-purple-300">
+                          <EditableText section="record" field="mvpLabel" label="Etiqueta MVP" />
+                        </strong>
+                        <EditableValue
+                          value={match.mvp}
+                          target={{
+                            kind: 'historyMatch',
+                            id: match.id,
+                            field: 'mvp',
+                            label: 'MVP del Partido',
+                          }}
+                          className="text-zinc-200"
+                        />
                         {match.ticketsDifference && (
-                          <span className="text-zinc-500"> · {match.ticketsDifference}</span>
+                          <>
+                            <span className="text-zinc-600">·</span>
+                            <EditableValue
+                              value={match.ticketsDifference}
+                              target={{
+                                kind: 'historyMatch',
+                                id: match.id,
+                                field: 'ticketsDifference',
+                                label: 'Diferencia / Detalle',
+                              }}
+                              className="text-zinc-500"
+                            />
+                          </>
                         )}
                       </div>
                     )}
-                    {match.notes && <div className="text-zinc-400">{match.notes}</div>}
+                    {match.notes && (
+                      <EditableValue
+                        value={match.notes}
+                        target={{
+                          kind: 'historyMatch',
+                          id: match.id,
+                          field: 'notes',
+                          label: 'Notas del Partido',
+                          multiline: true,
+                        }}
+                        className="text-zinc-400"
+                      />
+                    )}
                   </div>
                 )}
               </article>

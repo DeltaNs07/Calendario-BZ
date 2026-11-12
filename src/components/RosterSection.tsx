@@ -14,7 +14,7 @@ import { useClanData } from '../context/ClanDataContext';
 import { RosterMember } from '../types/clan';
 import { playTapSound } from '../utils/soundAndEffects';
 import { SmartImage } from './SmartImage';
-import { EditableText } from './EditableText';
+import { EditableText, EditableValue } from './EditableText';
 
 interface RosterSectionProps {
   onAddMember: () => void;
@@ -84,16 +84,23 @@ export const RosterSection: React.FC<RosterSectionProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div className="inline-flex p-1 bg-zinc-900 border border-white/10 rounded-xl w-full sm:w-auto">
           {[
-            { id: 'all', field: 'filterAll', label: `${r.filterAll} (${state.roster.length})` },
+            {
+              id: 'all',
+              field: 'filterAll',
+              label: 'Filtro Todos',
+              count: state.roster.length,
+            },
             {
               id: 'starters',
               field: 'filterStarters',
-              label: `${r.filterStarters} (${state.roster.filter((m) => m.isStarter).length})`,
+              label: 'Filtro Titulares',
+              count: state.roster.filter((m) => m.isStarter).length,
             },
             {
               id: 'subs',
               field: 'filterSubs',
-              label: `${r.filterSubs} (${state.roster.filter((m) => !m.isStarter).length})`,
+              label: 'Filtro Reservas',
+              count: state.roster.filter((m) => !m.isStarter).length,
             },
           ].map((tab) => (
             <button
@@ -109,7 +116,12 @@ export const RosterSection: React.FC<RosterSectionProps> = ({
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              {tab.label}
+              <EditableText
+                section="roster"
+                field={tab.field}
+                label={tab.label}
+                suffix={` (${tab.count})`}
+              />
             </button>
           ))}
         </div>
@@ -160,10 +172,15 @@ export const RosterSection: React.FC<RosterSectionProps> = ({
                     {member.isStarter ? (
                       <span className="inline-flex items-center gap-1 text-purple-300">
                         <Star className="w-3.5 h-3.5 fill-purple-400 text-purple-400" />
-                        {r.starterBadge}
+                        <EditableText section="roster" field="starterBadge" label="Etiqueta Titular" />
                       </span>
                     ) : (
-                      <span className="text-zinc-400">{r.subBadge}</span>
+                      <EditableText
+                        section="roster"
+                        field="subBadge"
+                        label="Etiqueta Reserva"
+                        className="text-zinc-400"
+                      />
                     )}
                   </div>
 
@@ -193,55 +210,120 @@ export const RosterSection: React.FC<RosterSectionProps> = ({
                 <div className="pt-8 px-4 pb-4">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-lg font-bold uppercase tracking-wide text-white font-heading truncate">
-                      {member.gamertag}
+                      <EditableValue
+                        value={member.gamertag}
+                        target={{
+                          kind: 'rosterMember',
+                          id: member.id,
+                          field: 'gamertag',
+                          label: 'Gamertag del Jugador',
+                        }}
+                      />
                     </h3>
-                    <span className="text-xs text-zinc-400 shrink-0">{member.country}</span>
+                    <EditableValue
+                      value={member.country}
+                      target={{
+                        kind: 'rosterMember',
+                        id: member.id,
+                        field: 'country',
+                        label: 'País del Jugador',
+                      }}
+                      className="text-xs text-zinc-400 shrink-0"
+                    />
                   </div>
-                  {member.realName && (
-                    <div className="text-xs text-zinc-400 truncate mt-0.5">{member.realName}</div>
+                  {(member.realName || isAdmin) && (
+                    <div className="text-xs text-zinc-400 truncate mt-0.5">
+                      <EditableValue
+                        value={member.realName || ''}
+                        placeholder="Añadir nombre..."
+                        target={{
+                          kind: 'rosterMember',
+                          id: member.id,
+                          field: 'realName',
+                          label: 'Nombre Real / Alias',
+                        }}
+                      />
+                    </div>
                   )}
 
                   <div className="mt-2 text-xs font-semibold uppercase tracking-wider text-purple-400 font-heading">
-                    {member.role}
+                    <EditableValue
+                      value={member.role}
+                      target={{
+                        kind: 'rosterMember',
+                        id: member.id,
+                        field: 'role',
+                        label: 'Rol del Jugador',
+                      }}
+                    />
                   </div>
                   <div className="mt-1 flex items-center gap-1.5 text-xs text-zinc-300">
                     <Award className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-                    <span className="truncate">{member.rank}</span>
+                    <EditableValue
+                      value={member.rank}
+                      target={{
+                        kind: 'rosterMember',
+                        id: member.id,
+                        field: 'rank',
+                        label: 'Rango del Jugador',
+                      }}
+                      className="truncate"
+                    />
                   </div>
 
                   <div className="mt-3.5 pt-3 border-t border-white/10 space-y-1.5 text-xs text-zinc-400">
                     <div className="flex items-center justify-between gap-2">
-                      <span>{r.operatorLabel}:</span>
-                      <span className="text-zinc-200 font-medium truncate text-right">
-                        {member.favoriteOperator}
-                      </span>
+                      <EditableText section="roster" field="operatorLabel" label="Etiqueta Operador" suffix=":" />
+                      <EditableValue
+                        value={member.favoriteOperator}
+                        target={{
+                          kind: 'rosterMember',
+                          id: member.id,
+                          field: 'favoriteOperator',
+                          label: 'Operador Favorito',
+                        }}
+                        className="text-zinc-200 font-medium truncate text-right"
+                      />
                     </div>
                     <div className="flex items-center justify-between gap-2">
                       <span className="flex items-center gap-1">
                         <Crosshair className="w-3 h-3 text-zinc-400" />
-                        {r.weaponLabel}:
+                        <EditableText section="roster" field="weaponLabel" label="Etiqueta Arma" suffix=":" />
                       </span>
-                      <span className="text-zinc-200 font-medium truncate text-right">
-                        {member.favoriteWeapon}
-                      </span>
+                      <EditableValue
+                        value={member.favoriteWeapon}
+                        target={{
+                          kind: 'rosterMember',
+                          id: member.id,
+                          field: 'favoriteWeapon',
+                          label: 'Arma Principal',
+                        }}
+                        className="text-zinc-200 font-medium truncate text-right"
+                      />
                     </div>
                   </div>
 
                   <div className="mt-4 grid grid-cols-3 gap-2 bg-black/45 border border-white/10 rounded-xl p-2.5 text-center">
                     <div>
-                      <div className="text-[11px] text-zinc-400 uppercase">{r.kdLabel}</div>
+                      <div className="text-[11px] text-zinc-400 uppercase">
+                        <EditableText section="roster" field="kdLabel" label="Etiqueta K/D" />
+                      </div>
                       <div className="text-sm font-bold text-purple-300 font-mono-numbers">
                         {member.kdRatio.toFixed(2)}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[11px] text-zinc-400 uppercase">{r.matchesLabel}</div>
+                      <div className="text-[11px] text-zinc-400 uppercase">
+                        <EditableText section="roster" field="matchesLabel" label="Etiqueta Partidas" />
+                      </div>
                       <div className="text-sm font-bold text-zinc-100 font-mono-numbers">
                         {member.matchesPlayed}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[11px] text-zinc-400 uppercase">{r.winRateLabel}</div>
+                      <div className="text-[11px] text-zinc-400 uppercase">
+                        <EditableText section="roster" field="winRateLabel" label="Etiqueta Win %" />
+                      </div>
                       <div className="text-sm font-bold text-emerald-400 font-mono-numbers">
                         {member.winRate}%
                       </div>
@@ -264,7 +346,11 @@ export const RosterSection: React.FC<RosterSectionProps> = ({
                         member.isStarter ? 'text-purple-400' : 'text-zinc-500'
                       }`}
                     />
-                    {member.isStarter ? r.makeSubBtn : r.makeStarterBtn}
+                    <EditableText
+                      section="roster"
+                      field={member.isStarter ? 'makeSubBtn' : 'makeStarterBtn'}
+                      label={member.isStarter ? 'Botón Hacer Reserva' : 'Botón Hacer Titular'}
+                    />
                   </button>
 
                   <div className="flex items-center gap-1">

@@ -17,7 +17,7 @@ import { UpcomingMatch } from '../types/clan';
 import { formatMatchTime, getWorldMatchTimes, TIMEZONE_OPTIONS } from '../utils/timezones';
 import { playTapSound } from '../utils/soundAndEffects';
 import { SmartImage } from './SmartImage';
-import { EditableText } from './EditableText';
+import { EditableText, EditableValue } from './EditableText';
 
 interface CalendarSectionProps {
   onAddNewMatch: () => void;
@@ -34,7 +34,6 @@ export const CalendarSection: React.FC<CalendarSectionProps> = ({
   const [expandedId, setExpandedId] = useState<string | null>(
     state.upcomingMatches[0]?.id ?? null
   );
-  const c = state.texts.calendar;
   const activeTzObj = TIMEZONE_OPTIONS.find((t) => t.tz === selectedTimezone);
 
   return (
@@ -138,24 +137,72 @@ export const CalendarSection: React.FC<CalendarSectionProps> = ({
                       />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-semibold text-purple-400 font-heading uppercase tracking-wide truncate">
-                        {match.tournamentName || 'Versus Oficial'}
+                      <div className="text-xs font-semibold text-purple-400 font-heading uppercase tracking-wide">
+                        <EditableValue
+                          value={match.tournamentName || 'Versus Oficial'}
+                          target={{
+                            kind: 'upcomingMatch',
+                            id: match.id,
+                            field: 'tournamentName',
+                            label: 'Torneo del Versus',
+                          }}
+                        />
                       </div>
-                      <h3 className="text-base sm:text-lg font-bold uppercase text-white font-heading mt-0.5">
-                        {state.info.tag} vs {match.opponentName}{' '}
-                        <span className="text-rose-400 font-mono-numbers text-sm">
-                          {match.opponentTag}
-                        </span>
+                      <h3 className="text-base sm:text-lg font-bold uppercase text-white font-heading mt-0.5 flex flex-wrap items-center gap-1.5">
+                        <span>{state.info.tag} vs</span>
+                        <EditableValue
+                          value={match.opponentName}
+                          target={{
+                            kind: 'upcomingMatch',
+                            id: match.id,
+                            field: 'opponentName',
+                            label: 'Nombre del Rival',
+                          }}
+                        />
+                        <EditableValue
+                          value={match.opponentTag}
+                          target={{
+                            kind: 'upcomingMatch',
+                            id: match.id,
+                            field: 'opponentTag',
+                            label: 'Tag del Rival',
+                          }}
+                          className="text-rose-400 font-mono-numbers text-sm"
+                        />
                       </h3>
                       <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-400">
-                        <span>{match.modality}</span>
+                        <EditableValue
+                          value={match.modality}
+                          target={{
+                            kind: 'upcomingMatch',
+                            id: match.id,
+                            field: 'modality',
+                            label: 'Modalidad',
+                          }}
+                        />
                         <span aria-hidden="true">·</span>
                         <span className="flex items-center gap-1 text-zinc-300">
                           <MapPin className="w-3 h-3 text-purple-400" />
-                          {match.map}
+                          <EditableValue
+                            value={match.map}
+                            target={{
+                              kind: 'upcomingMatch',
+                              id: match.id,
+                              field: 'map',
+                              label: 'Mapa',
+                            }}
+                          />
                         </span>
                         <span aria-hidden="true">·</span>
-                        <span>{match.serverRegion}</span>
+                        <EditableValue
+                          value={match.serverRegion}
+                          target={{
+                            kind: 'upcomingMatch',
+                            id: match.id,
+                            field: 'serverRegion',
+                            label: 'Región Servidor',
+                          }}
+                        />
                       </div>
                     </div>
                   </div>
@@ -194,12 +241,12 @@ export const CalendarSection: React.FC<CalendarSectionProps> = ({
                         {isExpanded ? (
                           <>
                             <ChevronUp className="w-3.5 h-3.5" />
-                            <span>{c.collapseTimesBtn}</span>
+                            <EditableText section="calendar" field="collapseTimesBtn" label="Botón ocultar horarios" />
                           </>
                         ) : (
                           <>
                             <ChevronDown className="w-3.5 h-3.5" />
-                            <span>{c.expandTimesBtn}</span>
+                            <EditableText section="calendar" field="expandTimesBtn" label="Botón ver horas por país" />
                           </>
                         )}
                       </button>
@@ -272,12 +319,35 @@ export const CalendarSection: React.FC<CalendarSectionProps> = ({
                       <div className="mt-3 space-y-1.5 text-xs text-zinc-300 bg-white/[0.04] p-3 rounded-xl">
                         {match.caster && (
                           <div>
-                            <strong className="text-purple-300">{c.casterPrefix}</strong> {match.caster}
+                            <strong className="text-purple-300">
+                              <EditableText section="calendar" field="casterPrefix" label="Prefijo Caster" />
+                            </strong>{' '}
+                            <EditableValue
+                              value={match.caster}
+                              target={{
+                                kind: 'upcomingMatch',
+                                id: match.id,
+                                field: 'caster',
+                                label: 'Caster del Versus',
+                              }}
+                            />
                           </div>
                         )}
                         {match.notes && (
                           <div>
-                            <strong className="text-zinc-200">{c.notesPrefix}</strong> {match.notes}
+                            <strong className="text-zinc-200">
+                              <EditableText section="calendar" field="notesPrefix" label="Prefijo notas tácticas" />
+                            </strong>{' '}
+                            <EditableValue
+                              value={match.notes}
+                              target={{
+                                kind: 'upcomingMatch',
+                                id: match.id,
+                                field: 'notes',
+                                label: 'Notas tácticas',
+                                multiline: true,
+                              }}
+                            />
                           </div>
                         )}
                       </div>

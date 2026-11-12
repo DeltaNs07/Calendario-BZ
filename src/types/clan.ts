@@ -123,6 +123,7 @@ export interface SiteTexts {
     localTeamLabel: string;
     captainPrefix: string;
     visitorTeamLabel: string;
+    vsBadge: string;
     countdownTitle: string;
     liveBadge: string;
     finishedBadge: string;
@@ -131,6 +132,7 @@ export interface SiteTexts {
     minutesLabel: string;
     secondsLabel: string;
     worldTimesTitle: string;
+    swipeHint: string;
     ctaCalendar: string;
     ctaRoster: string;
     ctaStream: string;

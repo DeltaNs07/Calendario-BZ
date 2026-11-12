@@ -2,7 +2,7 @@ import React from 'react';
 import { Award, BarChart3, Crosshair, Shield, TrendingUp, Users } from 'lucide-react';
 import { useClanData } from '../context/ClanDataContext';
 import { SmartImage } from './SmartImage';
-import { EditableText } from './EditableText';
+import { EditableText, EditableValue } from './EditableText';
 
 export const StatsSection: React.FC = () => {
   const { state, stats } = useClanData();
@@ -131,10 +131,36 @@ export const StatsSection: React.FC = () => {
                   </div>
                   <div className="min-w-0">
                     <div className="font-heading font-bold text-sm text-white truncate">
-                      {member.gamertag}
+                      <EditableValue
+                        value={member.gamertag}
+                        target={{
+                          kind: 'rosterMember',
+                          id: member.id,
+                          field: 'gamertag',
+                          label: 'Gamertag',
+                        }}
+                      />
                     </div>
                     <div className="text-xs text-zinc-400 truncate">
-                      {member.role} · {member.favoriteOperator}
+                      <EditableValue
+                        value={member.role}
+                        target={{
+                          kind: 'rosterMember',
+                          id: member.id,
+                          field: 'role',
+                          label: 'Rol',
+                        }}
+                      />{' '}
+                      ·{' '}
+                      <EditableValue
+                        value={member.favoriteOperator}
+                        target={{
+                          kind: 'rosterMember',
+                          id: member.id,
+                          field: 'favoriteOperator',
+                          label: 'Operador Favorito',
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -164,11 +190,20 @@ export const StatsSection: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            {s.mapStats.map((mapItem) => (
-              <div key={mapItem.name}>
-                <div className="flex items-center justify-between text-xs sm:text-sm mb-1.5">
-                  <span className="font-semibold text-zinc-200">{mapItem.name}</span>
-                  <span className="text-purple-300 font-mono-numbers font-bold">
+            {s.mapStats.map((mapItem, idx) => (
+              <div key={idx}>
+                <div className="flex items-center justify-between text-xs sm:text-sm mb-1.5 gap-2">
+                  <EditableValue
+                    value={mapItem.name}
+                    target={{
+                      kind: 'mapStat',
+                      index: idx,
+                      key: 'name',
+                      label: `Nombre Mapa ${idx + 1}`,
+                    }}
+                    className="font-semibold text-zinc-200"
+                  />
+                  <span className="text-purple-300 font-mono-numbers font-bold shrink-0">
                     {mapItem.winRate}% ({mapItem.played} PJ)
                   </span>
                 </div>
@@ -178,13 +213,25 @@ export const StatsSection: React.FC = () => {
                     style={{ width: `${Math.min(100, Math.max(0, mapItem.winRate))}%` }}
                   />
                 </div>
-                <div className="flex items-center justify-between text-[11px] text-zinc-400 mt-1">
+                <div className="flex items-center justify-between text-[11px] text-zinc-400 mt-1 gap-2">
                   <span>
-                    {s.bestScorePrefix} {mapItem.bestScore}
+                    <EditableText section="stats" field="bestScorePrefix" label="Prefijo mejor marcador" />{' '}
+                    <EditableValue
+                      value={mapItem.bestScore}
+                      target={{
+                        kind: 'mapStat',
+                        index: idx,
+                        key: 'bestScore',
+                        label: `Mejor marcador (${mapItem.name})`,
+                      }}
+                    />
                   </span>
-                  <span className="text-purple-400 font-semibold">
-                    {mapItem.winRate >= 80 ? s.mapFortressLabel : s.mapCompetitiveLabel}
-                  </span>
+                  <EditableText
+                    section="stats"
+                    field={mapItem.winRate >= 80 ? 'mapFortressLabel' : 'mapCompetitiveLabel'}
+                    label={mapItem.winRate >= 80 ? 'Etiqueta Fortaleza' : 'Etiqueta Mapa Competitivo'}
+                    className="text-purple-400 font-semibold"
+                  />
                 </div>
               </div>
             ))}

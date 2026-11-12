@@ -4,7 +4,7 @@ import { useClanData } from '../context/ClanDataContext';
 import { TabId } from '../types/clan';
 import { playTapSound } from '../utils/soundAndEffects';
 import { SmartImage } from './SmartImage';
-import { EditableText } from './EditableText';
+import { EditableText, EditableValue } from './EditableText';
 
 interface FooterProps {
   onSelectTab: (tab: TabId) => void;
@@ -25,14 +25,14 @@ export const Footer: React.FC<FooterProps> = ({
     playTapSound();
   };
 
-  const links: { id: TabId; label: string }[] = [
-    { id: 'versus', label: n.tabVersus },
-    { id: 'calendario', label: n.tabCalendario },
-    { id: 'roster', label: n.tabRoster },
-    { id: 'record', label: n.tabRecord },
-    { id: 'stats', label: n.tabStats },
-    { id: 'galeria', label: n.tabGaleria },
-    { id: 'info', label: n.tabInfo },
+  const links: { id: TabId; field: keyof typeof n; label: string }[] = [
+    { id: 'versus', field: 'tabVersus', label: n.tabVersus },
+    { id: 'calendario', field: 'tabCalendario', label: n.tabCalendario },
+    { id: 'roster', field: 'tabRoster', label: n.tabRoster },
+    { id: 'record', field: 'tabRecord', label: n.tabRecord },
+    { id: 'stats', field: 'tabStats', label: n.tabStats },
+    { id: 'galeria', field: 'tabGaleria', label: n.tabGaleria },
+    { id: 'info', field: 'tabInfo', label: n.tabInfo },
   ];
 
   return (
@@ -48,11 +48,21 @@ export const Footer: React.FC<FooterProps> = ({
             />
           </div>
           <div>
-            <span className="font-heading font-bold text-sm uppercase text-white tracking-wider">
-              {state.info.name}
-            </span>
-            <div className="text-xs text-zinc-400">
-              {state.info.game} · {state.info.server}
+            <EditableValue
+              value={state.info.name}
+              target={{ kind: 'clanInfo', field: 'name', label: 'Nombre del Clan' }}
+              className="font-heading font-bold text-sm uppercase text-white tracking-wider"
+            />
+            <div className="text-xs text-zinc-400 flex flex-wrap items-center gap-1 mt-0.5">
+              <EditableValue
+                value={state.info.game}
+                target={{ kind: 'clanInfo', field: 'game', label: 'Juego Principal' }}
+              />
+              <span>·</span>
+              <EditableValue
+                value={state.info.server}
+                target={{ kind: 'clanInfo', field: 'server', label: 'Región / Servidor' }}
+              />
             </div>
           </div>
         </div>
@@ -68,7 +78,7 @@ export const Footer: React.FC<FooterProps> = ({
               }}
               className="min-h-[36px] px-1 hover:text-purple-300 transition-colors"
             >
-              {item.label}
+              <EditableText section="nav" field={item.field} label={`Enlace ${item.label}`} />
             </button>
           ))}
         </div>

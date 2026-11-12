@@ -1,12 +1,29 @@
 import { ClanState, SiteTexts } from '../types/clan';
+import logoPurpleImg from '../assets/images/logo_baztardos_purple_1794520344273.jpg';
+import heroPurpleImg from '../assets/images/hero_baztardos_purple_1794520345492.jpg';
+import rivalLogoImg from '../assets/images/logo_rival_clan_1794520344722.jpg';
+import mapZeroDamImg from '../assets/images/map_zero_dam_1794520345803.jpg';
+import squadGalleryImg from '../assets/images/squad_tactical_gallery_1794520346681.jpg';
 
 export const ASSET_IMAGES = {
-  logoPurple: '/src/assets/images/logo_baztardos_purple_1794520344273.jpg',
-  heroPurple: '/src/assets/images/hero_baztardos_purple_1794520345492.jpg',
-  rivalLogo: '/src/assets/images/logo_rival_clan_1794520344722.jpg',
-  mapZeroDam: '/src/assets/images/map_zero_dam_1794520345803.jpg',
-  squadGallery: '/src/assets/images/squad_tactical_gallery_1794520346681.jpg',
+  logoPurple: logoPurpleImg,
+  heroPurple: heroPurpleImg,
+  rivalLogo: rivalLogoImg,
+  mapZeroDam: mapZeroDamImg,
+  squadGallery: squadGalleryImg,
 };
+
+export function resolveAssetUrl(url?: string): string {
+  if (!url) return '';
+  if (url.startsWith('/src/assets/images/')) {
+    if (url.includes('logo_baztardos')) return ASSET_IMAGES.logoPurple;
+    if (url.includes('hero_baztardos')) return ASSET_IMAGES.heroPurple;
+    if (url.includes('logo_rival')) return ASSET_IMAGES.rivalLogo;
+    if (url.includes('map_zero_dam')) return ASSET_IMAGES.mapZeroDam;
+    if (url.includes('squad_tactical')) return ASSET_IMAGES.squadGallery;
+  }
+  return url;
+}
 
 const addDays = (days = 2, hour = 18) => {
   const d = new Date();
@@ -43,6 +60,7 @@ export const DEFAULT_TEXTS: SiteTexts = {
     localTeamLabel: 'Local / Desafiante',
     captainPrefix: 'Capitán',
     visitorTeamLabel: 'Rival Internacional',
+    vsBadge: 'VS',
     countdownTitle: 'Cuenta Regresiva',
     liveBadge: 'MATCH EN VIVO AHORA',
     finishedBadge: 'Match Finalizado',
@@ -51,6 +69,7 @@ export const DEFAULT_TEXTS: SiteTexts = {
     minutesLabel: 'Min',
     secondsLabel: 'Seg',
     worldTimesTitle: 'Horarios Internacionales',
+    swipeHint: 'Desliza →',
     ctaCalendar: 'Ver Calendario',
     ctaRoster: 'Ver Escuadrón',
     ctaStream: 'Ver Transmisión',
@@ -259,6 +278,7 @@ export const TEXT_EDITOR_FIELDS: TextFieldSpec[] = [
   { section: 'hero', field: 'localTeamLabel', label: 'Etiqueta equipo local' },
   { section: 'hero', field: 'captainPrefix', label: 'Prefijo de Capitán' },
   { section: 'hero', field: 'visitorTeamLabel', label: 'Etiqueta equipo rival' },
+  { section: 'hero', field: 'vsBadge', label: 'Texto central VS' },
   { section: 'hero', field: 'countdownTitle', label: 'Título Cuenta Regresiva' },
   { section: 'hero', field: 'liveBadge', label: 'Aviso Match en Vivo' },
   { section: 'hero', field: 'finishedBadge', label: 'Aviso Match Finalizado' },
@@ -267,6 +287,7 @@ export const TEXT_EDITOR_FIELDS: TextFieldSpec[] = [
   { section: 'hero', field: 'minutesLabel', label: 'Etiqueta Minutos' },
   { section: 'hero', field: 'secondsLabel', label: 'Etiqueta Segundos' },
   { section: 'hero', field: 'worldTimesTitle', label: 'Título Horarios Internacionales' },
+  { section: 'hero', field: 'swipeHint', label: 'Indicación deslizar en móvil' },
   { section: 'hero', field: 'ctaCalendar', label: 'Botón Ver Calendario' },
   { section: 'hero', field: 'ctaRoster', label: 'Botón Ver Escuadrón' },
   { section: 'hero', field: 'ctaStream', label: 'Botón Ver Transmisión' },
